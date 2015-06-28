@@ -1,0 +1,109 @@
+#!/bin/sh
+
+ROOTDIR=.
+CONFDIR=$ROOTDIR/etc/blink1-reminder
+PROFILES=$CONFDIR/profile.d
+TIMEHOLDER=/tmp/.blink1-reminder.last_update
+
+
+if [ -n "$1" ]; then
+    if [ -d "$PROFILES/$1" ]; then
+        profile=$1
+    else
+        for x in "$PROFILES"/*_"$1"; do
+            if [ -d "$x" ]; then
+                profile=$x
+                break
+            fi
+        done
+    fi
+
+    if [ -d "$profile" ]; then
+        echo "$2" >"$profile/state"
+        sync
+    fi
+fi
+
+
+if [ -e "$TIMEHOLDER" ]; then
+    update=no
+
+    for state_file in "$PROFILES"/*/state; do
+        test -e "$state_file" || continue
+
+        # if [ "$state_file" -nt "$TIMEHOLDER" ]; then  # this is Bashism :(
+        if [ "$(find "$state_file" -prune -newer "$TIMEHOLDER")" ]; then
+            update=yes
+            break
+        fi
+    done
+
+    test "$update" = yes || exit 0
+fi
+
+touch "$TIMEHOLDER"
+
+
+prog=$(basename "$0")
+device_id=
+
+blink1_tool() {
+    args=
+
+    if [ -n "$device_serial" ]; then
+        if [ -z "$device_id" ]; then
+            device_id=$(blink1-tool --list | sed -n "s/^id:\([0-9]\+\) - serialnum:${device_serial}\\b.*$/\1/p" | head -1)
+
+            if [ -z "$device_id" ]; then
+                echo "$prog: device not found" >&2
+                exit 1
+            fi
+        fi
+
+        args="$args --id $device_id"
+    fi
+
+    blink1-tool $args "$@" >/dev/null
+    rc=$?
+
+    if [ "$rc" != 0 ]; then
+        echo "$prog: blink1-tool dies with code $rc" >&2
+        exit 1
+    fi
+}
+
+
+blink1_tool --off
+
+. "$CONFDIR/reminder.conf"
+
+
+test "$(date +%H%M)" -lt "$(echo "$wake_up_time" | tr -d :)" && exit 0
+test "$(date +%H%M)" -ge "$(echo "$sleep_time" | tr -d :)"   && exit 0
+
+
+i=0
+
+for profile in "$PROFILES"/*; do
+    test -e "$profile" || continue
+
+    state=$(cat "$profile/state")
+    test "$state" = 1 || continue
+
+    . "$CONFDIR/default.conf"
+    . "$profile/config"
+
+    blink1_tool --rgb "$rgb" --millis "$fading"             --setpattline $((i*4 + 0))
+    blink1_tool --rgb "$rgb" --millis "$((delay - fading))" --setpattline $((i*4 + 1))
+    blink1_tool --rgb 0,0,0  --millis "$fading"             --setpattline $((i*4 + 2))
+    blink1_tool --rgb 0,0,0  --millis "$((delay - fading))" --setpattline $((i*4 + 3))
+
+    i=$((i + 1))
+done
+
+if [ "$i" != 0 ]; then
+    blink1_tool --play "1,0,$((i*4 - 1)),0"
+fi
+
+
+exit 0
