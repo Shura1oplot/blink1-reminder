@@ -3,7 +3,6 @@
 ROOTDIR=
 CONFDIR=$ROOTDIR/etc/blink1-reminder
 PROFILES=$CONFDIR/profile.d
-TIMEHOLDER=/tmp/.blink1-reminder.last_update
 
 
 if [ -n "$1" ]; then
@@ -25,26 +24,6 @@ if [ -n "$1" ]; then
         fi
     fi
 fi
-
-
-if [ -e "$TIMEHOLDER" ]; then
-    update=no
-
-    for state_file in "$PROFILES"/*/state; do
-        test -e "$state_file" || continue
-        state_file=$(readlink -f "$state_file")
-
-        # if [ "$state_file" -nt "$TIMEHOLDER" ]; then  # this is Bashism :(
-        if [ "$(find "$state_file" -prune -newer "$TIMEHOLDER")" ]; then
-            update=yes
-            break
-        fi
-    done
-
-    test "$update" = yes || exit 0
-fi
-
-touch "$TIMEHOLDER"
 
 
 prog=$(basename "$0")
