@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ROOTDIR=.
+ROOTDIR=
 CONFDIR=$ROOTDIR/etc/blink1-reminder
 PROFILES=$CONFDIR/profile.d
 TIMEHOLDER=/tmp/.blink1-reminder.last_update
@@ -19,8 +19,10 @@ if [ -n "$1" ]; then
     fi
 
     if [ -d "$profile" ]; then
-        echo "$2" >"$profile/state"
-        sync
+        if [ $(cat "$profile/state") != "$2" ]; then
+            echo "$2" >"$profile/state"
+            sync
+        fi
     fi
 fi
 
