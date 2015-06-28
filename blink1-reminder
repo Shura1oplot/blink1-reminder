@@ -30,6 +30,7 @@ if [ -e "$TIMEHOLDER" ]; then
 
     for state_file in "$PROFILES"/*/state; do
         test -e "$state_file" || continue
+        state_file=$(readlink -f "$state_file")
 
         # if [ "$state_file" -nt "$TIMEHOLDER" ]; then  # this is Bashism :(
         if [ "$(find "$state_file" -prune -newer "$TIMEHOLDER")" ]; then
