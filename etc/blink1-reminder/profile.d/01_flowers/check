@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -e
+
+WEEK_DAYS=4,7
+TIME=12:00:00
+
+week_days=$(echo "$WEEK_DAYS" | tr "," "\n")
+time_offset=$(echo "$TIME" | awk -F: '{print $1*60*60 + $2*60 + $3}')
+
+ts0=$(date +%s)
+ts0=$((ts0 - time_offset))
+
+for i in $(seq 0 6); do
+    tsx=$((ts0 - i*24*60*60))
+    wdx=$(date -d "@$tsx" +%u)
+
+    if echo "$week_days" | grep -qF "$wdx"; then
+        ts0=$tsx
+        break
+    fi
+done
+
+ts0=$(date -d "$(date -d "@$ts0" +%Y-%m-%d) $TIME" +%s)
+ts1=$(date -r "$(readlink -f "$(dirname "$(readlink -f "$0")")/timeholder")" +%s)
+
+set +e
+test "$ts1" -ge "$ts0"
+exit "$?"
