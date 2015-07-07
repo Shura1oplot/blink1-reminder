@@ -3,10 +3,3 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 0 12 * * * * root check-date && blink1-reminder
 0 22 * * * * root check-date && blink1-reminder
-
-# At 00:00 on Thursdays and Saturdays
-0 0 * * 4,6 * root check-date && blink1-reminder flowers 1
-
-# At 00:00 on the 19th of every month
-0 0 19 * * * root check-date && blink1-reminder water-counter 1
-
