@@ -18,10 +18,8 @@ if [ -n "$1" ]; then
     fi
 
     if [ -d "$profile" ]; then
-        if [ $(cat "$profile/state") != "$2" ]; then
-            echo "$2" >"$profile/state"
-            sync
-        fi
+        touch "$profile/timeholder"
+        sync
     fi
 fi
 
@@ -60,17 +58,15 @@ blink1_tool --off
 . "$CONFDIR/reminder.conf"
 
 
-test "$(date +%H%M)" -lt "$(echo "$wake_up_time" | tr -d :)" && exit 0
-test "$(date +%H%M)" -ge "$(echo "$sleep_time" | tr -d :)"   && exit 0
+test "$(date +%H%M%S)" -lt "$(echo "$wake_up_time" | tr -d :)00" && exit 0
+test "$(date +%H%M%S)" -ge "$(echo "$sleep_time"   | tr -d :)00" && exit 0
 
 
 i=0
 
 for profile in "$PROFILES"/*; do
     test -e "$profile" || continue
-
-    state=$(cat "$profile/state")
-    test "$state" = 1 || continue
+    "$profile/check" && continue
 
     . "$CONFDIR/default.conf"
     . "$profile/config"
