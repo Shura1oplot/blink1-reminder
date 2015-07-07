@@ -5,7 +5,16 @@ CONFDIR=$ROOTDIR/etc/blink1-reminder
 PROFILES=$CONFDIR/profile.d
 
 
-if [ -n "$1" ]; then
+for x in "$@"; do
+    if [ "$x" = "*" ]; then
+        for x in "$PROFILES"/*; do
+            test -d "$x" || continue
+            test -e "$x/timeholder" || continue
+            touch "$x/timeholder"
+        done
+        continue
+    fi
+
     if [ -d "$PROFILES/$1" ]; then
         profile=$1
     else
@@ -19,9 +28,10 @@ if [ -n "$1" ]; then
 
     if [ -d "$profile" ]; then
         touch "$profile/timeholder"
-        sync
     fi
-fi
+done
+
+sync
 
 
 prog=$(basename "$0")
