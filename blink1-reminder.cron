@@ -1,5 +1,6 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-0 12 * * * * root check-date && blink1-reminder
-0 22 * * * * root check-date && blink1-reminder
+0 12 * * * root check-date && blink1-reminder
+0 22 * * * root check-date && blink1-reminder
+#
