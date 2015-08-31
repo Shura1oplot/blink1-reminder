@@ -1,0 +1,5 @@
+#!/bin/sh
+
+test "$(date +%Y)" -ge 2015 && exit 0
+blink1-tool --red
+exit 1

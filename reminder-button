@@ -1,0 +1,6 @@
+#!/bin/sh
+
+button-listen 22 | grep --line-buffered -F :1 |
+while read line; do
+    check-date && blink1-reminder "*" 
+done
