@@ -5,7 +5,7 @@ set -e
 # WEEK_DAYS=4,7
 WEEK_DAYS=7
 TIME=12:00:00
-MODE=1
+MODE=0
 
 week_days=$(echo "$WEEK_DAYS" | tr "," "\n")
 time_offset=$(echo "$TIME" | awk -F: '{print $1*60*60 + $2*60 + $3}')
